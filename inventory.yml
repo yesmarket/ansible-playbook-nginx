@@ -1,2 +1,2 @@
-[webservers]
+[proxies]
 localhost ansible_connection=local

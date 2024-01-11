@@ -1,13 +1,39 @@
-- name: Configure webserver with nginx
-  hosts: webservers
+- name: Install and configure nginx reverse proxy
+  hosts: proxies
   become: True
   tasks:
     - name: install nginx
       shell: amazon-linux-extras install nginx1 -y
 
-    - name: copy index.html
-      template: src=templates/index.html.j2 dest=/usr/share/nginx/html/index.html
-        mode=0644
+    - name: copy nginx.conf
+      copy:
+        src: etc/nginx/nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: copy reverse-proxy.conf
+      template:
+        src: etc/nginx/sites-available/reverse-proxy.conf.j2
+        dest: /etc/nginx/sites-available/reverse-proxy.conf
+        mode: 0644
+      vars:
+        token: {{ token }}
+
+    - name: create sites-enabled dir
+      file:
+        path: /etc/nginx/sites-enabled
+        state: directory
+        mode: '0755'
+
+    - name: create symbolic link between sites-available and sites-enabled
+      file:
+        src: /etc/nginx/sites-available/service-proxy.conf
+        dest: /etc/nginx/sites-enabled/
+        owner: root
+        group: root
+        state: link
 
     - name: restart nginx
       service: name=nginx state=restarted
