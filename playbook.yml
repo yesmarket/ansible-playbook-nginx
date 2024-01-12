@@ -41,5 +41,28 @@
         group: root
         state: link
 
+    - name: Install certbot and certbot-nginx python package
+      pip:
+        name:
+          - certbot
+          - certbot-nginx
+        executable: pip3
+
+    - name: Install urllib3 python package on version 1.26.6
+      pip:
+        name: urllib3==1.26.6
+        executable: pip3
+
+    - name: Obtain certificate using certbot and auto-configure nginx for HTTPS
+      shell: "/usr/local/bin/certbot --nginx --agree-tos -m {{ registered_email_for_domain }} -d {{ domain }}"
+
+    - name: Setup cronjob for automated certificate renewal
+      cron:
+        name: certbot-renewal
+        job: "/bin/bash -lc '/usr/local/bin/certbot -q renew'"
+        day: "1"
+        minute: "15"
+        hour: "10"
+
     - name: restart nginx
       service: name=nginx state=restarted
