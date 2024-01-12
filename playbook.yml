@@ -13,13 +13,19 @@
         group: root
         mode: 0644
 
+    - name: create sites-available dir
+      file:
+        path: /etc/nginx/sites-available
+        state: directory
+        mode: '0755'
+
     - name: copy reverse-proxy.conf
       template:
         src: etc/nginx/sites-available/reverse-proxy.conf.j2
         dest: /etc/nginx/sites-available/reverse-proxy.conf
         mode: 0644
       vars:
-        token: {{ token }}
+        token: "{{ token }}"
 
     - name: create sites-enabled dir
       file:
@@ -29,8 +35,8 @@
 
     - name: create symbolic link between sites-available and sites-enabled
       file:
-        src: /etc/nginx/sites-available/service-proxy.conf
-        dest: /etc/nginx/sites-enabled/
+        src: /etc/nginx/sites-available/reverse-proxy.conf
+        dest: /etc/nginx/sites-enabled/reverse-proxy.conf
         owner: root
         group: root
         state: link
