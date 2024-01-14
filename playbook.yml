@@ -4,6 +4,8 @@
   tasks:
     - name: install nginx
       shell: amazon-linux-extras install nginx1 -y
+      tags:
+        - nginx
 
     - name: copy nginx.conf
       copy:
@@ -12,12 +14,16 @@
         owner: root
         group: root
         mode: 0644
+      tags:
+        - nginx
 
     - name: create sites-available dir
       file:
         path: /etc/nginx/sites-available
         state: directory
         mode: '0755'
+      tags:
+        - nginx
 
     - name: copy reverse-proxy.conf
       template:
@@ -26,12 +32,16 @@
         mode: 0644
       vars:
         token: "{{ token }}"
+      tags:
+        - nginx
 
     - name: create sites-enabled dir
       file:
         path: /etc/nginx/sites-enabled
         state: directory
         mode: '0755'
+      tags:
+        - nginx
 
     - name: create symbolic link between sites-available and sites-enabled
       file:
@@ -40,6 +50,8 @@
         owner: root
         group: root
         state: link
+      tags:
+        - nginx
 
     - name: Install certbot and certbot-nginx python package
       pip:
@@ -47,14 +59,20 @@
           - certbot
           - certbot-nginx
         executable: pip3
+      tags:
+        - certbot
 
     - name: Install urllib3 python package on version 1.26.6
       pip:
         name: urllib3==1.26.6
         executable: pip3
+      tags:
+        - certbot
 
     - name: Obtain certificate using certbot and auto-configure nginx for HTTPS
       shell: "/usr/local/bin/certbot --nginx --agree-tos -m {{ registered_email_for_domain }} -d {{ domain }}"
+      tags:
+        - certbot
 
     - name: Setup cronjob for automated certificate renewal
       cron:
@@ -63,6 +81,11 @@
         day: "1"
         minute: "15"
         hour: "10"
+      tags:
+        - certbot
 
     - name: restart nginx
       service: name=nginx state=restarted
+      tags:
+        - nginx
+        - certbot
